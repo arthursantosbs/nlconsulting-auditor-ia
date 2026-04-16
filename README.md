@@ -10,6 +10,7 @@ Aplicacao web para processar lotes de documentos financeiros (`.zip` ou varios `
 - Tratamento de encoding invalido, campos vazios ou truncados e arquivos malformados
 - Deteccao de anomalias pedidas no briefing
 - Exportacao de `results.csv`, `anomalies.csv`, `audit_log.csv` e `results.xlsx`
+- Relatorio executivo em `anomaly_report.md` e resumo estruturado em `summary.json`
 - Interface web com progresso, resumo, filtros e downloads
 - Guia para Power BI e deploy
 
@@ -20,6 +21,7 @@ Aplicacao web para processar lotes de documentos financeiros (`.zip` ou varios `
 - IA: API compatível com OpenAI (`/v1/chat/completions`)
 - Exportacao Excel: `openpyxl`
 - Deploy sugerido: Render
+- Deploy alternativo: Docker em qualquer provedor compatível
 
 ## Como rodar localmente
 
@@ -38,6 +40,16 @@ uvicorn app.main:app --reload
 ```
 
 5. Abra `http://127.0.0.1:8000`.
+
+## Como processar o lote real pela linha de comando
+
+Quando voce receber o `arquivos_nf.zip`, pode gerar todos os artefatos sem abrir a interface:
+
+```bash
+python scripts/process_batch.py "C:\caminho\para\arquivos_nf.zip"
+```
+
+Os arquivos serao salvos em `manual_runs/<nome-do-lote>/`.
 
 ## Variaveis de ambiente
 
@@ -96,9 +108,27 @@ Cada anomalia registra:
 
 Tudo isso vai para `audit_log.csv` e para a aba `audit_log` do Excel.
 
+## Artefatos gerados por lote
+
+- `results.csv`: base principal por documento
+- `anomalies.csv`: uma linha por anomalia
+- `audit_log.csv`: trilha de auditoria
+- `results.xlsx`: workbook com abas separadas
+- `summary.json`: resumo agregado para integrações
+- `anomaly_report.md`: relatorio textual para entrega e entrevista
+
 ## Dados reais da tarefa
 
 O pacote `arquivos_nf.zip` nao estava presente neste workspace durante a implementacao. A aplicacao ja esta pronta para receber esse lote real assim que ele for disponibilizado.
+
+## Relatorio de anomalias para entrega
+
+Assim que o lote oficial for processado, use o arquivo `anomaly_report.md` gerado automaticamente como base para o item obrigatorio "quais anomalias foram encontradas". Ele ja resume:
+
+- volume total processado
+- contagem por tipo de anomalia
+- fornecedores mais concentrados
+- top arquivos para revisao manual
 
 ## Deploy no Render
 
@@ -107,6 +137,8 @@ O pacote `arquivos_nf.zip` nao estava presente neste workspace durante a impleme
 3. O arquivo [render.yaml](/C:/Users/arthur/Desktop/NLConsulting/render.yaml) ja define `buildCommand` e `startCommand`.
 4. Configure `OPENAI_API_KEY` nas environment variables do Render.
 5. Depois do deploy, a URL publica entregavel sera a URL gerada pelo Render.
+
+Como alternativa, o projeto tambem inclui [Dockerfile](/C:/Users/arthur/Desktop/NLConsulting/Dockerfile).
 
 ## Power BI
 

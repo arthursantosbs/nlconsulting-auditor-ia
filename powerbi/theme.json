@@ -1,0 +1,14 @@
+{
+  "name": "NLConsulting Audit Theme",
+  "dataColors": [
+    "#63D2C3",
+    "#F4A261",
+    "#FF7B72",
+    "#2A9D8F",
+    "#264653",
+    "#E9C46A"
+  ],
+  "background": "#F6FBFC",
+  "foreground": "#102A43",
+  "tableAccent": "#63D2C3"
+}

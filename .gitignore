@@ -5,6 +5,7 @@ __pycache__/
 venv/
 .env
 storage/jobs/
+manual_runs/
 dist/
 build/
 *.log

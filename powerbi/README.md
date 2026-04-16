@@ -7,6 +7,7 @@ Use os CSVs exportados pela aplicacao como fonte de dados do dashboard.
 - `results.csv`: uma linha por documento
 - `anomalies.csv`: uma linha por anomalia
 - `audit_log.csv`: uma linha por evento rastreavel
+- `summary.json`: resumo agregado opcional para validar totais
 
 ## Visuais obrigatorios
 
@@ -61,3 +62,9 @@ Publique no Power BI Service e inclua o link do relatorio junto com:
 - URL da aplicacao
 - link do repositório GitHub
 - breve relatorio das anomalias encontradas
+
+## Observacao pratica
+
+Depois de processar o lote oficial, o arquivo `anomaly_report.md` pode servir como roteiro da apresentacao de 3 minutos e como checklist para conferir se os totais do Power BI batem com os exports.
+
+O arquivo [theme.json](/C:/Users/arthur/Desktop/NLConsulting/powerbi/theme.json) pode ser importado no Power BI para deixar o visual mais consistente com a interface web.
