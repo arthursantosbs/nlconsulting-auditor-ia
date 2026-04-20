@@ -85,6 +85,34 @@ h2 {
   line-height: 1.7;
 }
 
+.runtime-banner {
+  display: inline-flex;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  line-height: 1.5;
+}
+
+.runtime-banner--loading {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+
+.runtime-banner--success {
+  background: rgba(99, 210, 195, 0.14);
+  color: var(--text);
+}
+
+.runtime-banner--warning {
+  background: rgba(244, 162, 97, 0.18);
+  color: var(--text);
+}
+
+.runtime-banner--error {
+  background: rgba(255, 123, 114, 0.2);
+  color: var(--text);
+}
+
 .hero-tags {
   display: flex;
   flex-wrap: wrap;

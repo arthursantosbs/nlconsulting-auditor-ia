@@ -24,6 +24,14 @@ KEY_ALIASES = {
     "HASH_VERIFICACAO": "hash_verificacao",
 }
 
+VALID_DOCUMENT_TYPES = {
+    "NOTA_FISCAL",
+    "RECIBO",
+    "FATURA",
+    "CONTRATO_ADITIVO",
+}
+VALID_STATUS_VALUES = {"PAGO", "CANCELADO", "ESTORNADO", "PENDENTE"}
+
 
 @dataclass
 class DecodedDocument:
@@ -131,3 +139,38 @@ def fill_not_extracted(fields: dict[str, str]) -> tuple[dict[str, str], list[str
         else:
             normalized[field_name] = value
     return normalized, missing
+
+
+def validate_extracted_fields(fields: dict[str, str]) -> list[str]:
+    warnings: list[str] = []
+
+    document_type = fields.get("tipo_documento", "nao extraido")
+    if document_type != "nao extraido" and document_type.upper() not in VALID_DOCUMENT_TYPES:
+        warnings.append(
+            f"Campo com valor fora do dominio esperado: tipo_documento={document_type}"
+        )
+
+    status = fields.get("status", "nao extraido")
+    if status != "nao extraido" and status.upper() not in VALID_STATUS_VALUES:
+        warnings.append(f"Campo com valor fora do dominio esperado: status={status}")
+
+    for date_field in ("data_emissao", "data_pagamento", "data_emissao_nf"):
+        value = fields.get(date_field, "nao extraido")
+        if value != "nao extraido" and parse_date(value) is None:
+            warnings.append(f"Campo com data invalida: {date_field}={value}")
+
+    amount = fields.get("valor_bruto", "nao extraido")
+    if amount != "nao extraido" and parse_currency_to_decimal(amount) is None:
+        warnings.append(f"Campo com formato invalido: valor_bruto={amount}")
+
+    cnpj = fields.get("cnpj_fornecedor", "nao extraido")
+    if cnpj != "nao extraido" and not re.fullmatch(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", cnpj):
+        warnings.append(f"Campo com formato invalido: cnpj_fornecedor={cnpj}")
+
+    verification_hash = fields.get("hash_verificacao", "nao extraido")
+    if verification_hash != "nao extraido" and not re.fullmatch(r"[A-Za-z0-9-]+", verification_hash):
+        warnings.append(
+            f"Campo com formato invalido: hash_verificacao={verification_hash}"
+        )
+
+    return warnings

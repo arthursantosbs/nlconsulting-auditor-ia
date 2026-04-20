@@ -12,7 +12,12 @@ from app.models import DocumentResult, JobState
 from app.services.anomalies import detect_anomalies
 from app.services.exports import write_exports
 from app.services.llm import LLMExtractionService
-from app.services.parsing import decode_text, fill_not_extracted, parse_key_value_pairs
+from app.services.parsing import (
+    decode_text,
+    fill_not_extracted,
+    parse_key_value_pairs,
+    validate_extracted_fields,
+)
 
 
 class JobManager:
@@ -107,6 +112,8 @@ class JobManager:
             confidence = "Baixa"
 
         normalized_fields, missing_fields = fill_not_extracted(merged_fields)
+        validation_warnings = validate_extracted_fields(normalized_fields)
+        extraction_warnings = list(dict.fromkeys(extraction_warnings + validation_warnings))
         document = DocumentResult(
             file_name=filename,
             processed_at=processed_at,

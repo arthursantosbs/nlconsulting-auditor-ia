@@ -9,6 +9,12 @@ from openpyxl import Workbook
 from app.models import DocumentResult
 
 
+def _has_processing_alert(document: DocumentResult) -> bool:
+    return document.process_status != "processed" or any(
+        anomaly.code == "FILE_PROCESSING_ISSUE" for anomaly in document.anomalies
+    )
+
+
 def write_exports(job_dir: Path, documents: list[DocumentResult]) -> dict[str, Path]:
     summary_rows = [document.summary_row() for document in documents]
     anomaly_rows = [row for document in documents for row in document.anomaly_rows()]
@@ -76,7 +82,8 @@ def _write_summary_json(path: Path, documents: list[DocumentResult]) -> None:
     summary = {
         "documents": len(documents),
         "processed": sum(document.process_status == "processed" for document in documents),
-        "warnings_or_failures": sum(document.process_status != "processed" for document in documents),
+        "warnings_or_failures": sum(_has_processing_alert(document) for document in documents),
+        "processing_alerts": sum(_has_processing_alert(document) for document in documents),
         "anomalies": sum(len(document.anomalies) for document in documents),
         "by_anomaly": {},
         "by_supplier": {},
@@ -97,6 +104,7 @@ def _write_summary_json(path: Path, documents: list[DocumentResult]) -> None:
 def _write_anomaly_report(path: Path, documents: list[DocumentResult]) -> None:
     total_docs = len(documents)
     total_anomalies = sum(len(document.anomalies) for document in documents)
+    processing_alerts = sum(_has_processing_alert(document) for document in documents)
     anomaly_counts: dict[str, int] = {}
     supplier_counts: dict[str, int] = {}
 
@@ -120,7 +128,7 @@ def _write_anomaly_report(path: Path, documents: list[DocumentResult]) -> None:
         "",
         f"- Total de arquivos processados: **{total_docs}**",
         f"- Total de anomalias detectadas: **{total_anomalies}**",
-        f"- Arquivos com alerta de processamento: **{sum(document.process_status != 'processed' for document in documents)}**",
+        f"- Arquivos com alerta de processamento: **{processing_alerts}**",
         "",
         "## Anomalias por tipo",
         "",

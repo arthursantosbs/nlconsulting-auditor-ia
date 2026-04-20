@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from dataclasses import dataclass
+from email.utils import parsedate_to_datetime
+from random import random
+from time import time
 
 import httpx
 
@@ -62,9 +66,7 @@ class LLMExtractionService:
         if not self.settings.ai_enabled:
             return LLMExtractionResult(
                 fields=preliminary_fields,
-                warnings=[
-                    "OPENAI_API_KEY ausente; usando extracao deterministica para desenvolvimento.",
-                ],
+                warnings=[],
                 confidence="Media",
                 processable=True,
                 source="rule_based_fallback",
@@ -87,21 +89,21 @@ class LLMExtractionService:
                 },
             ],
         }
+        if _is_gemini_openai_compatible(self.settings):
+            # Gemini 2.5 defaults to thinking; disabling it lowers latency and
+            # reduces free-tier instability for high-volume extraction tasks.
+            payload["reasoning_effort"] = "none"
 
         async with self._semaphore:
             response_json = await self._post_with_retry(payload)
 
         raw_content = response_json["choices"][0]["message"]["content"]
         parsed = json.loads(raw_content)
-        fields = parsed.get("fields") or {}
-        normalized_fields = {
-            field_name: str(fields.get(field_name, "nao extraido"))
-            for field_name in EXPECTED_FIELDS
-        }
+        fields = parsed.get("fields") or _extract_top_level_fields(parsed)
         return LLMExtractionResult(
-            fields=normalized_fields,
+            fields=_normalize_llm_fields(fields),
             warnings=[str(item) for item in parsed.get("warnings", [])],
-            confidence=str(parsed.get("confidence", "Media")),
+            confidence=_normalize_confidence(parsed.get("confidence", "Media")),
             processable=bool(parsed.get("processable", True)),
             source="llm",
             provider=self.settings.ai_provider_label,
@@ -121,11 +123,108 @@ class LLMExtractionService:
                         headers=headers,
                         json=payload,
                     )
-                response.raise_for_status()
+                if response.status_code >= 400:
+                    response.raise_for_status()
                 return response.json()
-            except (httpx.HTTPError, json.JSONDecodeError) as exc:
+            except json.JSONDecodeError as exc:
                 last_error = exc
                 if attempt >= self.settings.llm_max_retries:
                     break
-                await asyncio.sleep(min(attempt * 2, 6))
+                await asyncio.sleep(_retry_delay_seconds(attempt))
+            except httpx.HTTPStatusError as exc:
+                last_error = exc
+                if attempt >= self.settings.llm_max_retries or not _should_retry_status(exc.response.status_code):
+                    break
+                await asyncio.sleep(_retry_delay_seconds(attempt, exc.response))
+            except httpx.HTTPError as exc:
+                last_error = exc
+                if attempt >= self.settings.llm_max_retries:
+                    break
+                await asyncio.sleep(_retry_delay_seconds(attempt))
         raise RuntimeError(f"Falha ao consultar a API de IA: {last_error}") from last_error
+
+
+def _normalize_llm_fields(raw_fields: dict) -> dict[str, str]:
+    normalized: dict[str, str] = {}
+    if not isinstance(raw_fields, dict):
+        return normalized
+
+    for raw_key, raw_value in raw_fields.items():
+        key = _canonicalize_field_name(raw_key)
+        if not key:
+            continue
+        value = str(raw_value).strip()
+        if not value or value.lower() == "nao extraido":
+            continue
+        normalized[key] = value
+    return normalized
+
+
+def _extract_top_level_fields(payload: object) -> dict:
+    if not isinstance(payload, dict):
+        return {}
+    if any(_canonicalize_field_name(key) for key in payload.keys()):
+        return payload
+    return {}
+
+
+def _canonicalize_field_name(raw_key: object) -> str | None:
+    key = re.sub(r"[^a-z0-9]+", "_", str(raw_key).strip().lower()).strip("_")
+    if key in EXPECTED_FIELDS:
+        return key
+    return None
+
+
+def _normalize_confidence(value: object) -> str:
+    if isinstance(value, (int, float)):
+        if value >= 0.85:
+            return "Alta"
+        if value >= 0.6:
+            return "Media"
+        return "Baixa"
+
+    normalized = str(value).strip().lower()
+    mapping = {
+        "alta": "Alta",
+        "high": "Alta",
+        "media": "Media",
+        "média": "Media",
+        "medium": "Media",
+        "baixa": "Baixa",
+        "low": "Baixa",
+    }
+    return mapping.get(normalized, "Media")
+
+
+def _is_gemini_openai_compatible(settings: Settings) -> bool:
+    return (
+        "generativelanguage.googleapis.com" in settings.openai_base_url.lower()
+        or settings.openai_model.lower().startswith("gemini-")
+    )
+
+
+def _should_retry_status(status_code: int) -> bool:
+    return status_code in {408, 409, 425, 429, 500, 502, 503, 504}
+
+
+def _retry_delay_seconds(attempt: int, response: httpx.Response | None = None) -> float:
+    if response is not None:
+        retry_after = response.headers.get("Retry-After")
+        if retry_after:
+            parsed = _parse_retry_after(retry_after)
+            if parsed is not None:
+                return parsed
+
+    base_delay = min(2 ** attempt, 20)
+    return base_delay + (0.25 * random())
+
+
+def _parse_retry_after(value: str) -> float | None:
+    try:
+        return max(float(value), 0.0)
+    except ValueError:
+        try:
+            retry_at = parsedate_to_datetime(value).timestamp()
+        except (TypeError, ValueError, OverflowError):
+            return None
+        return max(retry_at - time(), 0.0)

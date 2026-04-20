@@ -7,6 +7,15 @@ from io import BytesIO
 from app.models import DocumentResult
 from app.services.anomalies import detect_anomalies
 from app.services.jobs import expand_uploads
+from app.services.llm import (
+    _extract_top_level_fields,
+    _is_gemini_openai_compatible,
+    _normalize_confidence,
+    _normalize_llm_fields,
+    _should_retry_status,
+)
+from app.services.parsing import validate_extracted_fields
+from app.config import Settings
 
 
 def make_document(file_name: str, supplier: str, number: str, cnpj: str, status: str = "PAGO") -> DocumentResult:
@@ -53,6 +62,68 @@ class AnomalyDetectionTests(unittest.TestCase):
         document = make_document("c.txt", "TechSoft", "NF-2", "12.345.678/0001-90", status="CANCELADO")
         detect_anomalies([document])
         self.assertTrue(any(anomaly.code == "STATUS_INCONSISTENCY" for anomaly in document.anomalies))
+
+    def test_validation_flags_unexpected_status_value(self) -> None:
+        warnings = validate_extracted_fields(
+            {
+                "tipo_documento": "RECIBO",
+                "numero_documento": "REC-1",
+                "data_emissao": "15/04/2024",
+                "fornecedor": "TechSoft",
+                "cnpj_fornecedor": "12.345.678/0001-90",
+                "descricao_servico": "Servico",
+                "valor_bruto": "R$ 10.000,00",
+                "data_pagamento": "20/04/2024",
+                "data_emissao_nf": "15/04/2024",
+                "aprovado_por": "Maria Silva",
+                "banco_destino": "Banco do Brasil",
+                "status": "PAG",
+                "hash_verificacao": "ABC123",
+            }
+        )
+        self.assertTrue(any("status=PAG" in warning for warning in warnings))
+
+    def test_llm_fields_are_normalized_case_insensitively(self) -> None:
+        normalized = _normalize_llm_fields(
+            {
+                "TIPO_DOCUMENTO": "NOTA_FISCAL",
+                "NUMERO_DOCUMENTO": "NF-1",
+                "DATA_PAGAMENTO": "20/04/2024",
+                "STATUS": "PAGO",
+            }
+        )
+        self.assertEqual(normalized["tipo_documento"], "NOTA_FISCAL")
+        self.assertEqual(normalized["numero_documento"], "NF-1")
+        self.assertEqual(normalized["data_pagamento"], "20/04/2024")
+        self.assertEqual(normalized["status"], "PAGO")
+
+    def test_llm_numeric_confidence_maps_to_label(self) -> None:
+        self.assertEqual(_normalize_confidence(0.95), "Alta")
+        self.assertEqual(_normalize_confidence(0.7), "Media")
+        self.assertEqual(_normalize_confidence(0.2), "Baixa")
+
+    def test_top_level_field_payload_is_accepted(self) -> None:
+        extracted = _extract_top_level_fields(
+            {
+                "TIPO_DOCUMENTO": "NOTA_FISCAL",
+                "NUMERO_DOCUMENTO": "NF-1",
+                "STATUS": "PAGO",
+            }
+        )
+        self.assertIn("TIPO_DOCUMENTO", extracted)
+
+    def test_gemini_openai_compatibility_is_detected(self) -> None:
+        settings = Settings(
+            openai_api_key="test",
+            openai_model="gemini-2.5-flash-lite",
+            openai_base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+        )
+        self.assertTrue(_is_gemini_openai_compatible(settings))
+
+    def test_retry_status_classifier_handles_transient_errors(self) -> None:
+        self.assertTrue(_should_retry_status(429))
+        self.assertTrue(_should_retry_status(503))
+        self.assertFalse(_should_retry_status(400))
 
     def test_expand_uploads_reads_zip_with_txt_files(self) -> None:
         buffer = BytesIO()

@@ -7,6 +7,7 @@ const downloadLinks = document.getElementById("download-links");
 const resultsBody = document.getElementById("results-body");
 const searchInput = document.getElementById("search-input");
 const anomalyFilter = document.getElementById("anomaly-filter");
+const runtimeBanner = document.getElementById("runtime-banner");
 
 const metrics = {
   documents: document.getElementById("metric-documents"),
@@ -18,6 +19,8 @@ const metrics = {
 let currentJobId = null;
 let currentDocuments = [];
 let pollTimer = null;
+
+loadHealth();
 
 uploadForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -69,6 +72,32 @@ function startPolling() {
       pollTimer = null;
     }
   }, 1500);
+}
+
+async function loadHealth() {
+  try {
+    const response = await fetch("/api/health");
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error("Nao foi possivel carregar o status da API.");
+    }
+    renderHealth(payload);
+  } catch (error) {
+    runtimeBanner.textContent = "Status da API indisponivel no momento.";
+    runtimeBanner.className = "runtime-banner runtime-banner--error";
+  }
+}
+
+function renderHealth(health) {
+  if (health.ai_enabled) {
+    runtimeBanner.textContent = `IA ativa via ${health.provider}. O lote sera enriquecido com extracao por LLM.`;
+    runtimeBanner.className = "runtime-banner runtime-banner--success";
+    return;
+  }
+
+  runtimeBanner.textContent =
+    "Modo desenvolvimento: OPENAI_API_KEY ausente. O sistema segue funcional com parser deterministico, mas a entrega final deve usar API de IA real.";
+  runtimeBanner.className = "runtime-banner runtime-banner--warning";
 }
 
 function renderJob(job) {
@@ -178,6 +207,8 @@ function formatDownloadLabel(raw) {
     anomalies_csv: "Baixar CSV de anomalias",
     audit_log_csv: "Baixar log de auditoria",
     results_xlsx: "Baixar Excel completo",
+    summary_json: "Baixar resumo JSON",
+    anomaly_report_md: "Baixar relatorio de anomalias",
   };
   return labels[raw] || raw;
 }

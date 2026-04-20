@@ -62,7 +62,14 @@ def _detect_file_process_issues(document: DocumentResult) -> None:
     technical_issue = any(
         token in warning.lower()
         for warning in document.warnings
-        for token in ("encoding", "campo ausente", "truncado", "invalido", "linha sem separador")
+        for token in (
+            "encoding",
+            "campo ausente",
+            "truncado",
+            "invalido",
+            "fora do dominio esperado",
+            "linha sem separador",
+        )
     )
     if document.process_status != "processed" or document.missing_fields or technical_issue:
         document.add_anomaly(
