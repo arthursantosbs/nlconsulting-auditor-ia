@@ -117,9 +117,19 @@ Tudo isso vai para `audit_log.csv` e para a aba `audit_log` do Excel.
 - `summary.json`: resumo agregado para integrações
 - `anomaly_report.md`: relatorio textual para entrega e entrevista
 
-## Dados reais da tarefa
+## Validacao com API real
 
-O pacote `arquivos_nf.zip` nao estava presente neste workspace durante a implementacao. A aplicacao ja esta pronta para receber esse lote real assim que ele for disponibilizado.
+O projeto foi validado com provider OpenAI-compatible real durante o desenvolvimento:
+
+- `Groq Free Plan` com `openai/gpt-oss-20b`
+- smoke test com `25` arquivos: `25/25` documentos processados via LLM
+- teste de estabilidade com `100` arquivos: `100/100` documentos processados via LLM
+
+Os artefatos desses testes ficam em `manual_runs/groq_checks/` no ambiente local e nao sao versionados.
+
+## Dados da tarefa
+
+O repositório inclui `sample_data/arquivos_nf_gemini_free.zip`, uma versao com `1000` arquivos `.txt` preparada para providers com limite gratis por request. O lote oficial original recebido para a vaga continua sendo o `arquivos_nf.zip`.
 
 ## Relatorio de anomalias para entrega
 
@@ -153,4 +163,5 @@ Arquivos sugeridos como fonte:
 ## Limitações honestas
 
 - Sem `OPENAI_API_KEY`, o sistema usa um parser deterministico para facilitar desenvolvimento local. Para a submissao final da vaga, configure a API real.
-- A publicacao online e a criacao do repositório GitHub dependem da sua conta e de credenciais externas. O projeto foi preparado para esse passo.
+- Provedores gratuitos podem impor limites diarios agressivos. Durante a validacao, o Gemini Free Tier desta conta ficou restrito a `20` requests por modelo, por isso a recomendacao pratica deste repositório passou a ser Groq para o caminho zero custo.
+- A publicacao online depende da sua conta e de credenciais externas. O projeto foi preparado para esse passo.
