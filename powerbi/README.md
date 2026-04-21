@@ -1,70 +1,73 @@
-# Guia do Dashboard Power BI
+# Power BI Pack
 
-Use os CSVs exportados pela aplicacao como fonte de dados do dashboard.
+Este diretorio deixa o dashboard praticamente pronto para montar no Power BI Desktop.
 
-## Arquivos
+Enquanto o lote oficial de `1000` arquivos termina, use esta pasta validada como fonte de desenvolvimento:
 
-- `results.csv`: uma linha por documento
-- `anomalies.csv`: uma linha por anomalia
-- `audit_log.csv`: uma linha por evento rastreavel
-- `summary.json`: resumo agregado opcional para validar totais
+- [manual_runs/groq_llama_validation_100_v2/arquivos_nf_gemini_free_100](/C:/Users/arthur/Desktop/NLConsulting/manual_runs/groq_llama_validation_100_v2/arquivos_nf_gemini_free_100)
 
-## Visuais obrigatorios
+Quando o lote oficial finalizar, troque apenas o parametro `pCaminhoExportacao` para:
 
-1. Cards
-   - total de arquivos: `COUNTROWS(results)`
-   - total de anomalias: `COUNTROWS(anomalies)`
-   - arquivos com erro de encoding: filtro em `results[warnings]` contendo `encoding`
+- [manual_runs/groq_final_llama_v2/arquivos_nf_gemini_free](/C:/Users/arthur/Desktop/NLConsulting/manual_runs/groq_final_llama_v2/arquivos_nf_gemini_free)
 
-2. Grafico de barras por tipo de anomalia
-   - eixo: `anomalies[tipo_anomalia]`
-   - valor: contagem de linhas
+## O que existe aqui
 
-3. Tabela de anomalias detalhada
-   - `file_name`
-   - `tipo_anomalia`
-   - `campos_evidencia`
-   - `confianca`
-   - `gravidade`
+- [theme.json](/C:/Users/arthur/Desktop/NLConsulting/powerbi/theme.json): tema visual alinhado com a web app
+- [MEASURES.dax](/C:/Users/arthur/Desktop/NLConsulting/powerbi/MEASURES.dax): medidas prontas
+- [DASHBOARD_LAYOUT.md](/C:/Users/arthur/Desktop/NLConsulting/powerbi/DASHBOARD_LAYOUT.md): desenho das paginas
+- [PUBLICACAO_CHECKLIST.md](/C:/Users/arthur/Desktop/NLConsulting/powerbi/PUBLICACAO_CHECKLIST.md): fechamento da entrega
+- [queries](/C:/Users/arthur/Desktop/NLConsulting/powerbi/queries): consultas Power Query
 
-4. Grafico por fornecedor
-   - eixo: `anomalies[fornecedor]`
-   - valor: quantidade de anomalias
-   - legenda opcional: `gravidade`
+## Modelo recomendado
 
-5. Tabela de log de auditoria
-   - `file_name`
-   - `timestamp`
-   - `rule`
-   - `outcome`
-   - `details`
+Use estas tabelas no Power BI:
 
-## Slicers recomendados
+- `results`: fato principal por documento
+- `anomalies`: uma linha por anomalia
+- `audit_log`: uma linha por evento de rastreabilidade
+- `dim_fornecedor`: dimensao de fornecedor
+- `dim_tipo_anomalia`: dimensao de tipo de anomalia
+- `dim_calendario`: calendario derivado das datas do lote
 
-- `tipo_anomalia`
-- `gravidade`
-- `fornecedor`
-- `process_status`
+## Relacionamentos
 
-## Medidas DAX uteis
+Crie estes relacionamentos:
 
-```DAX
-Total Arquivos = COUNTROWS(results)
-Total Anomalias = COUNTROWS(anomalies)
-Arquivos Suspeitos = CALCULATE(COUNTROWS(results), results[is_suspect] = "SIM")
-Erros Encoding = COUNTROWS(FILTER(results, CONTAINSSTRING(results[warnings], "encoding")))
-```
+- `results[file_name]` 1:* `anomalies[file_name]`
+- `results[file_name]` 1:* `audit_log[file_name]`
+- `dim_fornecedor[fornecedor]` 1:* `results[fornecedor]`
+- `dim_fornecedor[fornecedor]` 1:* `anomalies[fornecedor]`
+- `dim_tipo_anomalia[tipo_anomalia]` 1:* `anomalies[tipo_anomalia]`
+- `dim_calendario[Data]` 1:* `results[data_emissao_nf_data]`
 
-## Publicacao
+Direcao de filtro:
 
-Publique no Power BI Service e inclua o link do relatorio junto com:
+- mantenha `single` por padrao
+- use `dim_* -> fatos`
 
-- URL da aplicacao
-- link do repositório GitHub
-- breve relatorio das anomalias encontradas
+## Ordem sugerida de montagem
 
-## Observacao pratica
+1. Abra o Power BI Desktop.
+2. Importe o [theme.json](/C:/Users/arthur/Desktop/NLConsulting/powerbi/theme.json).
+3. Crie as queries na ordem dos arquivos em [queries](/C:/Users/arthur/Desktop/NLConsulting/powerbi/queries).
+4. Aplique os relacionamentos acima.
+5. Cole as medidas de [MEASURES.dax](/C:/Users/arthur/Desktop/NLConsulting/powerbi/MEASURES.dax).
+6. Monte as paginas conforme [DASHBOARD_LAYOUT.md](/C:/Users/arthur/Desktop/NLConsulting/powerbi/DASHBOARD_LAYOUT.md).
+7. Quando o lote oficial terminar, troque o parametro `pCaminhoExportacao` e clique em `Refresh`.
+8. Publique no Power BI Service.
 
-Depois de processar o lote oficial, o arquivo `anomaly_report.md` pode servir como roteiro da apresentacao de 3 minutos e como checklist para conferir se os totais do Power BI batem com os exports.
+## Resultado esperado para a entrega
 
-O arquivo [theme.json](/C:/Users/arthur/Desktop/NLConsulting/powerbi/theme.json) pode ser importado no Power BI para deixar o visual mais consistente com a interface web.
+O relatorio final deve mostrar pelo menos:
+
+- volume total processado
+- total de anomalias
+- taxa de arquivos suspeitos
+- top fornecedores impactados
+- distribuicao por tipo de anomalia
+- tabela detalhada de casos
+- trilha de auditoria filtravel
+
+## Observacao importante
+
+Nao consegui gerar um `.pbix` automaticamente daqui porque o Power BI Desktop nao esta disponivel neste ambiente. O que deixei pronto reduz o trabalho manual para importar, colar as medidas, montar os visuais e publicar.

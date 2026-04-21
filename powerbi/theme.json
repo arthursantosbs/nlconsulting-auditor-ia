@@ -5,10 +5,11 @@
     "#F4A261",
     "#FF7B72",
     "#2A9D8F",
-    "#264653",
-    "#E9C46A"
+    "#E9C46A",
+    "#6B8EF3",
+    "#A8BCC7"
   ],
-  "background": "#F6FBFC",
-  "foreground": "#102A43",
+  "background": "#081018",
+  "foreground": "#EFF7F9",
   "tableAccent": "#63D2C3"
 }
