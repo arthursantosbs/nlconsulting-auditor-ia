@@ -14,10 +14,10 @@ from app.config import Settings
 from app.models import EXPECTED_FIELDS
 
 
-PROMPT_TEMPLATE = """Voce e um auditor de documentos financeiros.
-Extraia APENAS os campos abaixo do texto bruto informado.
-Se um campo nao puder ser identificado com seguranca, devolva exatamente "nao extraido".
-Responda em JSON valido com esta estrutura:
+PROMPT_TEMPLATE = """Extraia campos de um documento financeiro e responda somente em JSON valido.
+Use exatamente "nao extraido" em qualquer campo incerto.
+Preserve datas, moedas e nomes como aparecem no documento.
+Formato:
 {
   "fields": {
     "tipo_documento": "...",
@@ -34,11 +34,10 @@ Responda em JSON valido com esta estrutura:
     "status": "...",
     "hash_verificacao": "..."
   },
-  "warnings": ["..."],
+  "warnings": [],
   "confidence": "Alta|Media|Baixa",
   "processable": true
-}
-Mantenha os valores em portugues e preserve datas/moedas como no documento."""
+}"""
 
 
 @dataclass
@@ -81,11 +80,7 @@ class LLMExtractionService:
                 {"role": "system", "content": PROMPT_TEMPLATE},
                 {
                     "role": "user",
-                    "content": (
-                        f"Arquivo: {filename}\n"
-                        f"Campos preliminares: {json.dumps(preliminary_fields, ensure_ascii=True)}\n\n"
-                        f"Documento bruto:\n{document_text[:12000]}"
-                    ),
+                    "content": f"Documento bruto:\n{document_text[:4000]}",
                 },
             ],
         }

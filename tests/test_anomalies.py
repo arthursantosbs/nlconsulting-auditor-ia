@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import asyncio
 import unittest
 import zipfile
 from io import BytesIO
 
+from app.config import Settings
 from app.models import DocumentResult
 from app.services.anomalies import detect_anomalies
-from app.services.jobs import expand_uploads
+from app.services.jobs import JobManager, expand_uploads
 from app.services.llm import (
     _extract_top_level_fields,
     _is_gemini_openai_compatible,
@@ -15,7 +17,6 @@ from app.services.llm import (
     _should_retry_status,
 )
 from app.services.parsing import validate_extracted_fields
-from app.config import Settings
 
 
 def make_document(file_name: str, supplier: str, number: str, cnpj: str, status: str = "PAGO") -> DocumentResult:
@@ -45,6 +46,32 @@ def make_document(file_name: str, supplier: str, number: str, cnpj: str, status:
         },
         missing_fields=[],
         warnings=[],
+    )
+
+
+def make_document_text(
+    *,
+    supplier: str = "TechSoft",
+    number: str = "NF-1",
+    cnpj: str = "12.345.678/0001-90",
+    status: str = "PAGO",
+) -> str:
+    return "\n".join(
+        [
+            "TIPO_DOCUMENTO: NOTA_FISCAL",
+            f"NUMERO_DOCUMENTO: {number}",
+            "DATA_EMISSAO: 15/04/2024",
+            f"FORNECEDOR: {supplier}",
+            f"CNPJ_FORNECEDOR: {cnpj}",
+            "DESCRICAO_SERVICO: Servico",
+            "VALOR_BRUTO: R$ 10.000,00",
+            "DATA_PAGAMENTO: 20/04/2024",
+            "DATA_EMISSAO_NF: 15/04/2024",
+            "APROVADO_POR: Maria Silva",
+            "BANCO_DESTINO: Banco do Brasil",
+            f"STATUS: {status}",
+            "HASH_VERIFICACAO: ABC123",
+        ]
     )
 
 
@@ -138,6 +165,21 @@ class AnomalyDetectionTests(unittest.TestCase):
     def test_expand_uploads_rejects_bad_zip(self) -> None:
         with self.assertRaises(ValueError):
             expand_uploads([("quebrado.zip", b"not-a-zip")], max_files=10)
+
+    def test_process_uploads_can_skip_batch_anomaly_detection(self) -> None:
+        manager = JobManager(Settings(openai_api_key="", llm_concurrency=1))
+        uploads = [
+            ("a.txt", make_document_text(number="NF-1").encode("utf-8")),
+            ("b.txt", make_document_text(number="NF-1").encode("utf-8")),
+        ]
+
+        documents = asyncio.run(manager.process_uploads(uploads, detect_batch_anomalies=False))
+
+        self.assertTrue(all(not document.anomalies for document in documents))
+        detect_anomalies(documents)
+        self.assertTrue(
+            all(any(anomaly.code == "DUPLICATE_NF" for anomaly in document.anomalies) for document in documents)
+        )
 
 
 if __name__ == "__main__":

@@ -137,12 +137,18 @@ class JobManager:
         )
         return document
 
-    async def process_uploads(self, uploads: list[tuple[str, bytes]]) -> list[DocumentResult]:
+    async def process_uploads(
+        self,
+        uploads: list[tuple[str, bytes]],
+        *,
+        detect_batch_anomalies: bool = True,
+    ) -> list[DocumentResult]:
         documents: list[DocumentResult] = []
         tasks = [self._process_single_file(filename, content) for filename, content in uploads]
         for task in asyncio.as_completed(tasks):
             documents.append(await task)
-        detect_anomalies(documents)
+        if detect_batch_anomalies:
+            detect_anomalies(documents)
         return documents
 
 

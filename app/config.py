@@ -21,7 +21,7 @@ def _env_bool(name: str, default: bool) -> bool:
 class Settings:
     app_name: str = "NLConsulting Auditor de Documentos com IA"
     app_version: str = "1.0.0"
-    prompt_version: str = "2026-04-16-v1"
+    prompt_version: str = "2026-04-21-v2"
     upload_root: Path = field(
         default_factory=lambda: Path(os.getenv("UPLOAD_ROOT", "storage/jobs")).resolve()
     )
