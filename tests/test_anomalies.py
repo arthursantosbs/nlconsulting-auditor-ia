@@ -10,6 +10,7 @@ from app.models import DocumentResult
 from app.services.anomalies import detect_anomalies
 from app.services.jobs import JobManager, expand_uploads
 from app.services.llm import (
+    _extract_batch_items,
     _extract_top_level_fields,
     _is_gemini_openai_compatible,
     _normalize_confidence,
@@ -139,6 +140,18 @@ class AnomalyDetectionTests(unittest.TestCase):
         )
         self.assertIn("TIPO_DOCUMENTO", extracted)
 
+    def test_batch_payload_items_are_extracted(self) -> None:
+        extracted = _extract_batch_items(
+            {
+                "documents": [
+                    {"file_name": "a.txt", "fields": {"STATUS": "PAGO"}},
+                    {"file_name": "b.txt", "fields": {"STATUS": "CANCELADO"}},
+                ]
+            }
+        )
+        self.assertEqual(len(extracted), 2)
+        self.assertEqual(extracted[0]["file_name"], "a.txt")
+
     def test_gemini_openai_compatibility_is_detected(self) -> None:
         settings = Settings(
             openai_api_key="test",
@@ -180,6 +193,17 @@ class AnomalyDetectionTests(unittest.TestCase):
         self.assertTrue(
             all(any(anomaly.code == "DUPLICATE_NF" for anomaly in document.anomalies) for document in documents)
         )
+
+    def test_structured_documents_skip_llm_and_still_process(self) -> None:
+        manager = JobManager(Settings(openai_api_key="test", ai_required=True, llm_concurrency=1))
+        uploads = [("ok.txt", make_document_text(number="NF-7").encode("utf-8"))]
+
+        documents = asyncio.run(manager.process_uploads(uploads))
+
+        self.assertEqual(len(documents), 1)
+        self.assertEqual(documents[0].extraction_source, "parser_structured")
+        self.assertEqual(documents[0].provider, "structured-parser")
+        self.assertEqual(documents[0].process_status, "processed")
 
 
 if __name__ == "__main__":

@@ -39,6 +39,37 @@ Formato:
   "processable": true
 }"""
 
+BATCH_PROMPT_TEMPLATE = """Extraia campos de varios documentos financeiros e responda somente em JSON valido.
+Use exatamente o file_name recebido.
+Use exatamente "nao extraido" em qualquer campo incerto.
+Preserve datas, moedas e nomes como aparecem no documento.
+Formato:
+{
+  "documents": [
+    {
+      "file_name": "DOC_0001.txt",
+      "fields": {
+        "tipo_documento": "...",
+        "numero_documento": "...",
+        "data_emissao": "...",
+        "fornecedor": "...",
+        "cnpj_fornecedor": "...",
+        "descricao_servico": "...",
+        "valor_bruto": "...",
+        "data_pagamento": "...",
+        "data_emissao_nf": "...",
+        "aprovado_por": "...",
+        "banco_destino": "...",
+        "status": "...",
+        "hash_verificacao": "..."
+      },
+      "warnings": [],
+      "confidence": "Alta|Media|Baixa",
+      "processable": true
+    }
+  ]
+}"""
+
 
 @dataclass
 class LLMExtractionResult:
@@ -104,6 +135,50 @@ class LLMExtractionService:
             provider=self.settings.ai_provider_label,
         )
 
+    async def extract_batch(
+        self,
+        *,
+        documents: list[tuple[str, str]],
+    ) -> dict[str, LLMExtractionResult]:
+        if not self.settings.ai_enabled:
+            return {}
+
+        batch_lines: list[str] = []
+        for file_name, document_text in documents:
+            batch_lines.append(f"ARQUIVO: {file_name}\nDOCUMENTO:\n{document_text[:4000]}")
+        payload = {
+            "model": self.settings.openai_model,
+            "temperature": 0,
+            "response_format": {"type": "json_object"},
+            "messages": [
+                {"role": "system", "content": BATCH_PROMPT_TEMPLATE},
+                {"role": "user", "content": "\n\n###\n\n".join(batch_lines)},
+            ],
+        }
+        if _is_gemini_openai_compatible(self.settings):
+            payload["reasoning_effort"] = "none"
+
+        async with self._semaphore:
+            response_json = await self._post_with_retry(payload)
+
+        raw_content = response_json["choices"][0]["message"]["content"]
+        parsed = json.loads(raw_content)
+        results: dict[str, LLMExtractionResult] = {}
+        for item in _extract_batch_items(parsed):
+            file_name = str(item.get("file_name", "")).strip()
+            if not file_name:
+                continue
+            fields = item.get("fields") or _extract_top_level_fields(item)
+            results[file_name] = LLMExtractionResult(
+                fields=_normalize_llm_fields(fields),
+                warnings=[str(entry) for entry in item.get("warnings", [])],
+                confidence=_normalize_confidence(item.get("confidence", "Media")),
+                processable=bool(item.get("processable", True)),
+                source="llm",
+                provider=self.settings.ai_provider_label,
+            )
+        return results
+
     async def _post_with_retry(self, payload: dict) -> dict:
         headers = {
             "Authorization": f"Bearer {self.settings.openai_api_key}",
@@ -161,6 +236,15 @@ def _extract_top_level_fields(payload: object) -> dict:
     if any(_canonicalize_field_name(key) for key in payload.keys()):
         return payload
     return {}
+
+
+def _extract_batch_items(payload: object) -> list[dict]:
+    if not isinstance(payload, dict):
+        return []
+    documents = payload.get("documents")
+    if isinstance(documents, list):
+        return [item for item in documents if isinstance(item, dict)]
+    return []
 
 
 def _canonicalize_field_name(raw_key: object) -> str | None:

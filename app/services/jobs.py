@@ -20,6 +20,22 @@ from app.services.parsing import (
 )
 
 
+STRUCTURAL_WARNING_TOKENS = (
+    "campo ausente",
+    "truncado",
+    "linha sem separador",
+    "encoding",
+)
+
+
+def _has_structural_parse_issue(warnings: list[str]) -> bool:
+    return any(
+        token in warning.lower()
+        for warning in warnings
+        for token in STRUCTURAL_WARNING_TOKENS
+    )
+
+
 class JobManager:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
@@ -88,28 +104,39 @@ class JobManager:
         processed_at = datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
         decoded = decode_text(content)
         parsed_fields, parse_warnings = parse_key_value_pairs(decoded.text)
+        structural_warnings = decoded.warnings + parse_warnings
 
-        try:
-            llm_result = await self.llm_service.extract(
-                filename=filename,
-                document_text=decoded.text,
-                preliminary_fields=parsed_fields,
-            )
-            merged_fields = {**parsed_fields, **llm_result.fields}
-            extraction_warnings = list(dict.fromkeys(decoded.warnings + parse_warnings + llm_result.warnings))
-            process_status = "processed" if llm_result.processable else "warning"
-            extraction_source = llm_result.source
-            provider = llm_result.provider
-            confidence = llm_result.confidence
-        except Exception:
+        if not _has_structural_parse_issue(structural_warnings):
             merged_fields = parsed_fields
-            extraction_warnings = decoded.warnings + parse_warnings + [
-                "Falha ao consultar a API de IA; aplicado fallback seguro para continuar o lote."
-            ]
-            process_status = "warning" if not self.settings.ai_required else "failed"
-            extraction_source = "parser_only"
-            provider = "fallback-after-error"
-            confidence = "Baixa"
+            extraction_warnings = list(dict.fromkeys(structural_warnings))
+            process_status = "processed"
+            extraction_source = "parser_structured"
+            provider = "structured-parser"
+            confidence = "Alta"
+        else:
+            try:
+                llm_result = await self.llm_service.extract(
+                    filename=filename,
+                    document_text=decoded.text,
+                    preliminary_fields=parsed_fields,
+                )
+                merged_fields = {**parsed_fields, **llm_result.fields}
+                extraction_warnings = list(
+                    dict.fromkeys(structural_warnings + llm_result.warnings)
+                )
+                process_status = "processed" if llm_result.processable else "warning"
+                extraction_source = llm_result.source
+                provider = llm_result.provider
+                confidence = llm_result.confidence
+            except Exception:
+                merged_fields = parsed_fields
+                extraction_warnings = structural_warnings + [
+                    "Falha ao consultar a API de IA; aplicado fallback seguro para continuar o lote."
+                ]
+                process_status = "warning" if not self.settings.ai_required else "failed"
+                extraction_source = "parser_only"
+                provider = "fallback-after-error"
+                confidence = "Baixa"
 
         normalized_fields, missing_fields = fill_not_extracted(merged_fields)
         validation_warnings = validate_extracted_fields(normalized_fields)
