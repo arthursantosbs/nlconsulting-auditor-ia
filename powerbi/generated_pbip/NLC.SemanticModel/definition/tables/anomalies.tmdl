@@ -1,0 +1,132 @@
+table anomalies
+	lineageTag: 8d1eaf6a-7ff7-4e1b-b9d0-07ed27942aee
+
+	column file_name
+		dataType: string
+		lineageTag: e406a95e-a872-4960-bf7f-e08311df5488
+		summarizeBy: none
+		sourceColumn: file_name
+
+	column numero_documento
+		dataType: string
+		lineageTag: 5bb55a8b-126e-4620-b0ab-c0c6c4293ff3
+		summarizeBy: none
+		sourceColumn: numero_documento
+
+	column fornecedor
+		dataType: string
+		lineageTag: 756903b0-9712-4cfe-9cbf-46746d567c9c
+		summarizeBy: none
+		sourceColumn: fornecedor
+
+	column tipo_anomalia
+		dataType: string
+		lineageTag: 2fcf233d-5b47-4c12-b3aa-b2967788ce59
+		summarizeBy: none
+		sourceColumn: tipo_anomalia
+
+	column codigo_anomalia
+		dataType: string
+		lineageTag: 327eb35d-46b0-409b-8cd5-a1b7de3202fe
+		summarizeBy: none
+		sourceColumn: codigo_anomalia
+
+	column gravidade
+		dataType: string
+		lineageTag: 93128c5a-6715-47df-8b7a-6e71ec259f6a
+		summarizeBy: none
+		sourceColumn: gravidade
+
+	column confianca
+		dataType: string
+		lineageTag: cda32586-1106-4399-be84-9c46f5328e46
+		summarizeBy: none
+		sourceColumn: confianca
+
+	column regra
+		dataType: string
+		lineageTag: 01b04625-31ec-4d82-8c63-9fbc042c5368
+		summarizeBy: none
+		sourceColumn: regra
+
+	column campos_evidencia
+		dataType: string
+		lineageTag: f6b5ebf7-f3f1-40ee-83bb-0b60243d0ed9
+		summarizeBy: none
+		sourceColumn: campos_evidencia
+
+	column valores_evidencia
+		dataType: string
+		lineageTag: fcae9c3c-f6ab-416e-9abe-195c461eb8d4
+		summarizeBy: none
+		sourceColumn: valores_evidencia
+
+	column mensagem
+		dataType: string
+		lineageTag: 59b0517c-836b-4e0a-847e-511583e126cc
+		summarizeBy: none
+		sourceColumn: mensagem
+
+	column processed_at
+		dataType: string
+		lineageTag: 39720bb2-af1e-4b0c-b770-b6714696b6a2
+		summarizeBy: none
+		sourceColumn: processed_at
+
+	column processed_at_datetime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: af864351-59b7-434a-9a8f-551a27569691
+		summarizeBy: none
+		sourceColumn: processed_at_datetime
+
+		variation Variation
+			isDefault
+			relationship: 1c32f12d-e60b-4751-a80f-570fb6d4f8fa
+			defaultHierarchy: LocalDateTable_019789a7-a656-4614-93b6-437b44499451.'Hierarquia de datas'
+
+	partition anomalies = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\\Users\\arthur\\Desktop\\NLConsulting\\manual_runs\\final_fasttrack_1000\\arquivos_nf_gemini_free\\results.xlsx"), null, true),
+				    Raw = Source{[Item="anomalies",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),
+				    fnDataBR = (txt as nullable text) as nullable date =>
+				        let
+				            normalized = if txt = null or Text.Trim(txt) = "" then null else Text.Trim(txt),
+				            parsed = try if normalized = null then null else Date.FromText(normalized, [Culture="pt-BR"]) otherwise null
+				        in
+				            parsed,
+				    fnDateTimeIso = (txt as nullable text) as nullable datetime =>
+				        let
+				            normalized = if txt = null or Text.Trim(txt) = "" then null else Text.Trim(txt),
+				            parsed = try if normalized = null then null else DateTime.From(DateTimeZone.FromText(normalized)) otherwise null
+				        in
+				            parsed,
+				    fnMoedaBR = (txt as nullable text) as nullable number =>
+				        let
+				            normalized = if txt = null or Text.Trim(txt) = "" then null else Text.Trim(Text.Replace(txt, "R$", "")),
+				            semMilhar = if normalized = null then null else Text.Replace(normalized, ".", ""),
+				            decimalPoint = if semMilhar = null then null else Text.Replace(semMilhar, ",", "."),
+				            parsed = try if decimalPoint = null then null else Number.FromText(decimalPoint, "en-US") otherwise null
+				        in
+				            parsed,
+				    #"Changed Types" = Table.TransformColumnTypes(#"Promoted Headers", {
+				        {"file_name", type text},
+				        {"numero_documento", type text},
+				        {"fornecedor", type text},
+				        {"tipo_anomalia", type text},
+				        {"codigo_anomalia", type text},
+				        {"gravidade", type text},
+				        {"confianca", type text},
+				        {"regra", type text},
+				        {"campos_evidencia", type text},
+				        {"valores_evidencia", type text},
+				        {"mensagem", type text},
+				        {"processed_at", type text}
+				    }, "pt-BR"),
+				    #"Added Processed At Datetime" = Table.AddColumn(#"Changed Types", "processed_at_datetime", each fnDateTimeIso([processed_at]), type datetime)
+				in
+				    #"Added Processed At Datetime"
+

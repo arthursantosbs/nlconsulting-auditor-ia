@@ -2,11 +2,12 @@
 
 ## Antes de publicar
 
-- confirmar que o lote oficial terminou
+- abrir [powerbi/generated_pbip/NLC.pbix](/C:/Users/arthur/Desktop/NLConsulting/powerbi/generated_pbip/NLC.pbix)
+- confirmar se o relatorio abre com os dados da pasta final
 - validar se `summary.json` bate com os cards do Power BI
-- trocar `pCaminhoExportacao` para a pasta final do lote oficial
 - clicar em `Refresh`
-- revisar se todas as tabelas ficaram com `1000` documentos no total
+- entrar na conta Microsoft/Power BI
+- clicar em `Publicar`
 
 ## Itens do relatorio
 
@@ -16,8 +17,8 @@
 
 ## Itens da entrega
 
-- link publico da aplicacao
-- link do GitHub publico
+- link publico da aplicacao: [https://nlconsulting-document-auditor.onrender.com](https://nlconsulting-document-auditor.onrender.com)
+- link do GitHub publico: [arthursantosbs/nlconsulting-auditor-ia](https://github.com/arthursantosbs/nlconsulting-auditor-ia)
 - `results.csv` ou `results.xlsx`
 - dashboard publicado no Power BI Service
 - log de auditoria exportavel
@@ -27,6 +28,9 @@
 - `Total Arquivos` igual ao total do `summary.json`
 - `Total Anomalias` igual ao total do `summary.json`
 - `Alertas de Processamento` igual a `FILE_PROCESSING_ISSUE`
+- `Total Arquivos = 1000`
+- `Total Anomalias = 167`
+- `Alertas de Processamento = 3`
 - filtros funcionando por fornecedor e tipo de anomalia
 - tabela de auditoria mostrando `file_processed` e `anomaly_detected`
 

@@ -1,0 +1,25 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["results","anomalies","audit_log"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table results
+ref table anomalies
+ref table audit_log
+ref table DateTableTemplate_30f95ccd-be77-41af-87b9-fc723868ccbb
+ref table LocalDateTable_d1831dc4-90c2-40be-ab45-99dc9db7d4be
+ref table LocalDateTable_b51177bb-b026-454c-827a-fbdc70620f50
+ref table LocalDateTable_019789a7-a656-4614-93b6-437b44499451
+ref table LocalDateTable_080ef1a7-f3e1-4396-a39f-c2beae7d93d1
+
+ref cultureInfo pt-BR
+

@@ -1,0 +1,315 @@
+cultureInfo pt-BR
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "anomalies.file_name": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "anomalies",
+			          "ConceptualProperty": "file_name"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "arquivo": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "anomalies.numero_documento": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "anomalies",
+			          "ConceptualProperty": "numero_documento"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "documento": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "anomalies.fornecedor": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "anomalies",
+			          "ConceptualProperty": "fornecedor"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "fornecedor": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "anomalies.tipo_anomalia": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "anomalies",
+			          "ConceptualProperty": "tipo_anomalia"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "anomalia": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "tipo": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "anomalies.gravidade": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "anomalies",
+			          "ConceptualProperty": "gravidade"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "gravidade": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "anomalies.mensagem": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "anomalies",
+			          "ConceptualProperty": "mensagem"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "mensagem": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "anomalies.codigo_anomalia": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "anomalies",
+			          "ConceptualProperty": "codigo_anomalia"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "codigo": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "anomalies.regra": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "anomalies",
+			          "ConceptualProperty": "regra"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "regra": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "audit_log.file_name": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "audit_log",
+			          "ConceptualProperty": "file_name"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "arquivo": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "audit_log.timestamp": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "audit_log",
+			          "ConceptualProperty": "timestamp"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "timestamp": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "audit_log.event_type": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "audit_log",
+			          "ConceptualProperty": "event_type"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "evento": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "audit_log.rule": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "audit_log",
+			          "ConceptualProperty": "rule"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "regra": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "audit_log.outcome": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "audit_log",
+			          "ConceptualProperty": "outcome"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "resultado": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "audit_log.details": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "audit_log",
+			          "ConceptualProperty": "details"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "detalhes": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json
+

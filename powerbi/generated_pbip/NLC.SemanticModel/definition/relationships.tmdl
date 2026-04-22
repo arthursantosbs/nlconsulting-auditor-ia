@@ -1,0 +1,28 @@
+relationship f4a03b86-d008-4d31-8948-4ace96ff4502
+	fromColumn: anomalies.file_name
+	toColumn: results.file_name
+
+relationship 0e085ea8-d6a4-457c-99b1-14ce14dbd371
+	fromColumn: audit_log.file_name
+	toColumn: results.file_name
+
+relationship 857fc6ca-2cf1-47eb-880f-058729dec941
+	joinOnDateBehavior: datePartOnly
+	fromColumn: results.data_emissao_nf_data
+	toColumn: LocalDateTable_d1831dc4-90c2-40be-ab45-99dc9db7d4be.Date
+
+relationship afe5c742-5ec3-46b4-b8b4-229acbc191e4
+	joinOnDateBehavior: datePartOnly
+	fromColumn: results.processed_at_datetime
+	toColumn: LocalDateTable_b51177bb-b026-454c-827a-fbdc70620f50.Date
+
+relationship 1c32f12d-e60b-4751-a80f-570fb6d4f8fa
+	joinOnDateBehavior: datePartOnly
+	fromColumn: anomalies.processed_at_datetime
+	toColumn: LocalDateTable_019789a7-a656-4614-93b6-437b44499451.Date
+
+relationship dd6e8535-19d8-4e6f-ac29-b3e271052c7e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: audit_log.timestamp_datetime
+	toColumn: LocalDateTable_080ef1a7-f3e1-4396-a39f-c2beae7d93d1.Date
+

@@ -1,14 +1,24 @@
 # Power BI Pack
 
-Este diretorio deixa o dashboard praticamente pronto para montar no Power BI Desktop.
+Este diretorio agora contem o pacote completo do dashboard final.
 
-Enquanto o lote oficial de `1000` arquivos termina, use esta pasta validada como fonte de desenvolvimento:
+Fonte oficial do relatorio:
 
-- [manual_runs/groq_llama_validation_100_v2/arquivos_nf_gemini_free_100](/C:/Users/arthur/Desktop/NLConsulting/manual_runs/groq_llama_validation_100_v2/arquivos_nf_gemini_free_100)
+- [manual_runs/final_fasttrack_1000/arquivos_nf_gemini_free](/C:/Users/arthur/Desktop/NLConsulting/manual_runs/final_fasttrack_1000/arquivos_nf_gemini_free)
 
-Quando o lote oficial finalizar, troque apenas o parametro `pCaminhoExportacao` para:
+Arquivos gerados no Power BI:
 
-- [manual_runs/groq_final_llama_v2/arquivos_nf_gemini_free](/C:/Users/arthur/Desktop/NLConsulting/manual_runs/groq_final_llama_v2/arquivos_nf_gemini_free)
+- [powerbi/generated_pbip/NLC.pbip](/C:/Users/arthur/Desktop/NLConsulting/powerbi/generated_pbip/NLC.pbip)
+- [powerbi/generated_pbip/NLC.pbix](/C:/Users/arthur/Desktop/NLConsulting/powerbi/generated_pbip/NLC.pbix)
+
+Validacao do lote final no dashboard:
+
+- `1000` arquivos
+- `167` anomalias
+- `3` alertas de processamento
+- `149` casos de `STATUS inconsistente`
+- `8` casos de `NF duplicada`
+- `3` casos de `CNPJ divergente`
 
 ## O que existe aqui
 
@@ -17,6 +27,7 @@ Quando o lote oficial finalizar, troque apenas o parametro `pCaminhoExportacao` 
 - [DASHBOARD_LAYOUT.md](/C:/Users/arthur/Desktop/NLConsulting/powerbi/DASHBOARD_LAYOUT.md): desenho das paginas
 - [PUBLICACAO_CHECKLIST.md](/C:/Users/arthur/Desktop/NLConsulting/powerbi/PUBLICACAO_CHECKLIST.md): fechamento da entrega
 - [queries](/C:/Users/arthur/Desktop/NLConsulting/powerbi/queries): consultas Power Query
+- [generated_pbip](/C:/Users/arthur/Desktop/NLConsulting/powerbi/generated_pbip): projeto PBIP e arquivo `.pbix` final
 
 ## Modelo recomendado
 
@@ -45,16 +56,15 @@ Direcao de filtro:
 - mantenha `single` por padrao
 - use `dim_* -> fatos`
 
-## Ordem sugerida de montagem
+## Estado atual
 
-1. Abra o Power BI Desktop.
-2. Importe o [theme.json](/C:/Users/arthur/Desktop/NLConsulting/powerbi/theme.json).
-3. Crie as queries na ordem dos arquivos em [queries](/C:/Users/arthur/Desktop/NLConsulting/powerbi/queries).
-4. Aplique os relacionamentos acima.
-5. Cole as medidas de [MEASURES.dax](/C:/Users/arthur/Desktop/NLConsulting/powerbi/MEASURES.dax).
-6. Monte as paginas conforme [DASHBOARD_LAYOUT.md](/C:/Users/arthur/Desktop/NLConsulting/powerbi/DASHBOARD_LAYOUT.md).
-7. Quando o lote oficial terminar, troque o parametro `pCaminhoExportacao` e clique em `Refresh`.
-8. Publique no Power BI Service.
+O dashboard ja foi montado e salvo localmente no Power BI Desktop. O trabalho manual que sobra e:
+
+1. abrir [powerbi/generated_pbip/NLC.pbix](/C:/Users/arthur/Desktop/NLConsulting/powerbi/generated_pbip/NLC.pbix) ou [powerbi/generated_pbip/NLC.pbip](/C:/Users/arthur/Desktop/NLConsulting/powerbi/generated_pbip/NLC.pbip)
+2. clicar em `Publicar`
+3. entrar com a conta Microsoft/Power BI
+4. escolher o workspace
+5. copiar o link do Power BI Service
 
 ## Resultado esperado para a entrega
 
@@ -70,4 +80,4 @@ O relatorio final deve mostrar pelo menos:
 
 ## Observacao importante
 
-Nao consegui gerar um `.pbix` automaticamente daqui porque o Power BI Desktop nao esta disponivel neste ambiente. O que deixei pronto reduz o trabalho manual para importar, colar as medidas, montar os visuais e publicar.
+O publish no Power BI Service ainda depende de login humano na conta Microsoft/Power BI. Todo o resto ja esta pronto e validado localmente.

@@ -12,3 +12,6 @@ build/
 *.tmp
 *.bak
 .DS_Store
+powerbi/generated_pbip/**/.pbi/
+powerbi/generated_pbip/**/.platform
+powerbi/generated_pbip/**/cache.abf

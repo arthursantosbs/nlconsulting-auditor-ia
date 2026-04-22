@@ -1,0 +1,401 @@
+table results
+	lineageTag: ecf8c8e8-ab5f-426a-a77e-26c1d7704f28
+
+	measure 'Total Arquivos' = COUNTROWS(results)
+		formatString: 0
+		lineageTag: 61e7368d-5ad7-4f5a-84cb-016ed959209f
+
+	measure 'Total Anomalias' = COUNTROWS(anomalies)
+		formatString: 0
+		lineageTag: 882360b9-9510-4d92-9784-53454cde75da
+
+	measure 'Arquivos Suspeitos' =
+			CALCULATE(
+				DISTINCTCOUNT(results[file_name]),
+				results[is_suspect] = "SIM"
+			)
+		formatString: 0
+		lineageTag: e50c31c3-e222-454c-be7a-b7256455b6a7
+
+	measure 'Arquivos Processados' =
+			CALCULATE(
+				DISTINCTCOUNT(results[file_name]),
+				results[process_status] = "processed"
+			)
+		formatString: 0
+		lineageTag: 50f9e47f-fd78-42f9-9874-4cd1364b422d
+
+	measure 'Arquivos com Falha' =
+			CALCULATE(
+				DISTINCTCOUNT(results[file_name]),
+				results[process_status] <> "processed"
+			)
+		formatString: 0
+		lineageTag: 6d63abe8-ef42-4bd0-ad4b-8a55d5ea81e2
+
+	measure 'Arquivos via LLM' =
+			CALCULATE(
+				DISTINCTCOUNT(results[file_name]),
+				results[extraction_source] = "llm"
+			)
+		formatString: 0
+		lineageTag: 653a93b0-437f-4eb2-8e98-be336b254499
+
+	measure 'Taxa de Suspeita' = DIVIDE([Arquivos Suspeitos], [Total Arquivos], 0)
+		formatString: 0.00%
+		lineageTag: 83034691-80f1-4bbf-a86f-48f216ffe075
+
+	measure 'Taxa de Falha' = DIVIDE([Arquivos com Falha], [Total Arquivos], 0)
+		formatString: 0.00%
+		lineageTag: a4590263-fae6-4066-a01f-a3f45fdb3716
+
+	measure 'Taxa LLM' = DIVIDE([Arquivos via LLM], [Total Arquivos], 0)
+		formatString: 0.00%
+		lineageTag: c98372bf-7c1d-47bb-95b8-e81698a308ba
+
+	measure 'Alertas de Processamento' =
+			CALCULATE(
+				DISTINCTCOUNT(anomalies[file_name]),
+				anomalies[codigo_anomalia] = "FILE_PROCESSING_ISSUE"
+			)
+		formatString: 0
+		lineageTag: ccf9836c-4a31-4056-954b-17edf95da0d6
+
+	measure 'Fornecedores Impactados' = DISTINCTCOUNT(anomalies[fornecedor])
+		formatString: 0
+		lineageTag: d06851bb-9715-44fd-9fad-fd43ae6244cb
+
+	measure 'Tipos de Anomalia' = DISTINCTCOUNT(anomalies[tipo_anomalia])
+		formatString: 0
+		lineageTag: 2cb60638-767e-49ca-a573-0371f33cd45b
+
+	measure 'Eventos de Auditoria' = COUNTROWS(audit_log)
+		formatString: 0
+		lineageTag: 5abc6ea4-eaff-44e0-8338-5eb7c2c01983
+
+	measure 'Providers Distintos' = DISTINCTCOUNT(results[provider])
+		formatString: 0
+		lineageTag: 0158cf55-a395-415f-a71d-57ea3d8981c3
+
+	measure 'Prompts Distintos' = DISTINCTCOUNT(results[prompt_version])
+		formatString: 0
+		lineageTag: 536a41a5-6f93-4aae-85f3-4977ce7a4cf2
+
+	measure 'Valor Bruto Total' = SUM(results[valor_bruto_num])
+		formatString: R$ #,##0.00
+		lineageTag: 11773250-3b78-4ec8-914b-9b5089d1bbcd
+
+	measure 'Valor Bruto Medio' = AVERAGE(results[valor_bruto_num])
+		formatString: R$ #,##0.00
+		lineageTag: bebc2414-8489-4240-9fde-d809fe5021a0
+
+	measure 'Valor Bruto Suspeito' =
+			CALCULATE(
+				SUM(results[valor_bruto_num]),
+				results[is_suspect] = "SIM"
+			)
+		formatString: R$ #,##0.00
+		lineageTag: 9c57865f-2648-4aa3-a6d6-651e55ae79e5
+
+	measure 'Percentual de Valor Suspeito' = DIVIDE([Valor Bruto Suspeito], [Valor Bruto Total], 0)
+		formatString: 0.00%
+		lineageTag: 67e65e3f-8590-44ee-b762-fa7027e227bb
+
+	measure 'Anomalias Alta Gravidade' =
+			CALCULATE(
+				COUNTROWS(anomalies),
+				anomalies[gravidade] = "Alta"
+			)
+		formatString: 0
+		lineageTag: 85ec0465-a50b-4dd3-bd0b-9897f3fe6a47
+
+	measure 'Anomalias Media Gravidade' =
+			CALCULATE(
+				COUNTROWS(anomalies),
+				anomalies[gravidade] = "Media"
+			)
+		formatString: 0
+		lineageTag: 159dd902-bb30-4238-aee2-c7a43c94a848
+
+	measure 'Documentos Pagos' =
+			CALCULATE(
+				DISTINCTCOUNT(results[file_name]),
+				results[status] = "PAGO"
+			)
+		formatString: 0
+		lineageTag: 48bef2af-8497-4291-a053-ff4276c1441d
+
+	measure 'Documentos Cancelados' =
+			CALCULATE(
+				DISTINCTCOUNT(results[file_name]),
+				results[status] = "CANCELADO"
+			)
+		formatString: 0
+		lineageTag: b32fa46c-839d-49ed-931f-81ef88d6cea2
+
+	measure 'Ultimo Processamento' = MAX(results[processed_at_datetime])
+		formatString: General Date
+		lineageTag: f56cec98-7596-4c46-9ada-4315a3210cfc
+
+	measure 'Erros de Encoding' =
+			COUNTROWS(
+				FILTER(
+					results,
+					CONTAINSSTRING(LOWER(results[warnings]), "encoding")
+				)
+			)
+		formatString: 0
+		lineageTag: 383a49ee-b5ba-4328-a73e-31616e505619
+
+	column file_name
+		dataType: string
+		isKey
+		lineageTag: 4431e799-2875-44ac-8727-9e2036debd3a
+		summarizeBy: none
+		sourceColumn: file_name
+
+	column processed_at
+		dataType: string
+		lineageTag: 940778e6-c71b-4a88-8080-a7c3b25a5cb3
+		summarizeBy: none
+		sourceColumn: processed_at
+
+	column prompt_version
+		dataType: string
+		lineageTag: 893bf8f1-c6f5-4c1c-973e-fd1062f59914
+		summarizeBy: none
+		sourceColumn: prompt_version
+
+	column extraction_source
+		dataType: string
+		lineageTag: 25e1440f-0f75-46c9-8d8f-f026fd36e32c
+		summarizeBy: none
+		sourceColumn: extraction_source
+
+	column provider
+		dataType: string
+		lineageTag: 615eb7ff-5b68-479f-9938-6cf054e23438
+		summarizeBy: none
+		sourceColumn: provider
+
+	column encoding_used
+		dataType: string
+		lineageTag: 349cfb4e-4a2f-4d85-ba71-e9ddf23a371a
+		summarizeBy: none
+		sourceColumn: encoding_used
+
+	column process_status
+		dataType: string
+		lineageTag: b1992045-e49f-4f08-b5fa-7c4088b964b4
+		summarizeBy: none
+		sourceColumn: process_status
+
+	column extraction_confidence
+		dataType: string
+		lineageTag: 639f9162-6bf3-4f36-9c15-f87dae5b4fe9
+		summarizeBy: none
+		sourceColumn: extraction_confidence
+
+	column missing_fields
+		dataType: string
+		lineageTag: 06959111-5e18-4050-aa34-5f487e7d194c
+		summarizeBy: none
+		sourceColumn: missing_fields
+
+	column warnings
+		dataType: string
+		lineageTag: 907b0a2e-8da6-40ad-849a-43b8c85c2942
+		summarizeBy: none
+		sourceColumn: warnings
+
+	column anomaly_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 1bddc02c-df27-4c9c-b768-6e809719b223
+		summarizeBy: sum
+		sourceColumn: anomaly_count
+
+	column anomaly_types
+		dataType: string
+		lineageTag: 79b3b51e-a99e-4ceb-8f9f-599e9d72ce2f
+		summarizeBy: none
+		sourceColumn: anomaly_types
+
+	column is_suspect
+		dataType: string
+		lineageTag: de9337df-a753-4532-8962-50cf566c75d5
+		summarizeBy: none
+		sourceColumn: is_suspect
+
+	column tipo_documento
+		dataType: string
+		lineageTag: 7bb81477-8584-496f-a98a-7fa018b7be0f
+		summarizeBy: none
+		sourceColumn: tipo_documento
+
+	column numero_documento
+		dataType: string
+		lineageTag: dac415cc-d653-4804-bae3-5e453952ccaa
+		summarizeBy: none
+		sourceColumn: numero_documento
+
+	column data_emissao
+		dataType: string
+		lineageTag: 49fb5073-96f7-4130-81bf-a4e396091eed
+		summarizeBy: none
+		sourceColumn: data_emissao
+
+	column fornecedor
+		dataType: string
+		lineageTag: 7e217006-32b4-4d8c-ab99-7fc35961095a
+		summarizeBy: none
+		sourceColumn: fornecedor
+
+	column cnpj_fornecedor
+		dataType: string
+		lineageTag: 8f836f3c-81ac-449e-ad5b-4b2efbe9c007
+		summarizeBy: none
+		sourceColumn: cnpj_fornecedor
+
+	column descricao_servico
+		dataType: string
+		lineageTag: a5dbd351-e103-449b-9417-b606bad052e2
+		summarizeBy: none
+		sourceColumn: descricao_servico
+
+	column valor_bruto
+		dataType: string
+		lineageTag: c955f958-2887-4d6c-a3f4-641d39985935
+		summarizeBy: none
+		sourceColumn: valor_bruto
+
+	column valor_bruto_num
+		dataType: double
+		formatString: R$ #,##0.00
+		lineageTag: 6e3fe1cf-8252-4c8d-814f-0a3e800c5e82
+		summarizeBy: sum
+		sourceColumn: valor_bruto_num
+
+	column data_pagamento
+		dataType: string
+		lineageTag: 1de5f068-b82d-46e5-8693-b9d377ac4d10
+		summarizeBy: none
+		sourceColumn: data_pagamento
+
+	column data_emissao_nf
+		dataType: string
+		lineageTag: b8c2031d-2aa4-4453-8f17-85b74e27f1cd
+		summarizeBy: none
+		sourceColumn: data_emissao_nf
+
+	column data_emissao_nf_data
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: de651bda-e504-466a-b91f-5d23bcdc0825
+		summarizeBy: none
+		sourceColumn: data_emissao_nf_data
+
+		variation Variation
+			isDefault
+			relationship: 857fc6ca-2cf1-47eb-880f-058729dec941
+			defaultHierarchy: LocalDateTable_d1831dc4-90c2-40be-ab45-99dc9db7d4be.'Hierarquia de datas'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column aprovado_por
+		dataType: string
+		lineageTag: 7c683a3e-830d-4e40-827e-cd4919ff2be8
+		summarizeBy: none
+		sourceColumn: aprovado_por
+
+	column banco_destino
+		dataType: string
+		lineageTag: e3f8838d-58c4-459c-b823-c3bb66d62ba1
+		summarizeBy: none
+		sourceColumn: banco_destino
+
+	column status
+		dataType: string
+		lineageTag: deba78b2-d131-435b-84ce-aef0a8a3b314
+		summarizeBy: none
+		sourceColumn: status
+
+	column hash_verificacao
+		dataType: string
+		lineageTag: e989def6-26d4-4fc2-812c-75230daf096a
+		summarizeBy: none
+		sourceColumn: hash_verificacao
+
+	column processed_at_datetime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d08e04f4-727f-4aad-b96a-cf32fbf39cef
+		summarizeBy: none
+		sourceColumn: processed_at_datetime
+
+		variation Variation
+			isDefault
+			relationship: afe5c742-5ec3-46b4-b8b4-229acbc191e4
+			defaultHierarchy: LocalDateTable_b51177bb-b026-454c-827a-fbdc70620f50.'Hierarquia de datas'
+
+	partition results = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\\Users\\arthur\\Desktop\\NLConsulting\\manual_runs\\final_fasttrack_1000\\arquivos_nf_gemini_free\\results.xlsx"), null, true),
+				    Raw = Source{[Item="documents",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),
+				    fnDataBR = (txt as nullable text) as nullable date =>
+				        let
+				            normalized = if txt = null or Text.Trim(txt) = "" then null else Text.Trim(txt),
+				            parsed = try if normalized = null then null else Date.FromText(normalized, [Culture="pt-BR"]) otherwise null
+				        in
+				            parsed,
+				    fnDateTimeIso = (txt as nullable text) as nullable datetime =>
+				        let
+				            normalized = if txt = null or Text.Trim(txt) = "" then null else Text.Trim(txt),
+				            parsed = try if normalized = null then null else DateTime.From(DateTimeZone.FromText(normalized)) otherwise null
+				        in
+				            parsed,
+				    fnMoedaBR = (txt as nullable text) as nullable number =>
+				        let
+				            normalized = if txt = null or Text.Trim(txt) = "" then null else Text.Trim(Text.Replace(txt, "R$", "")),
+				            semMilhar = if normalized = null then null else Text.Replace(normalized, ".", ""),
+				            decimalPoint = if semMilhar = null then null else Text.Replace(semMilhar, ",", "."),
+				            parsed = try if decimalPoint = null then null else Number.FromText(decimalPoint, "en-US") otherwise null
+				        in
+				            parsed,
+				    #"Changed Types" = Table.TransformColumnTypes(#"Promoted Headers", {
+				        {"file_name", type text},
+				        {"processed_at", type text},
+				        {"prompt_version", type text},
+				        {"extraction_source", type text},
+				        {"provider", type text},
+				        {"encoding_used", type text},
+				        {"process_status", type text},
+				        {"extraction_confidence", type text},
+				        {"missing_fields", type text},
+				        {"warnings", type text},
+				        {"anomaly_count", Int64.Type},
+				        {"anomaly_types", type text},
+				        {"is_suspect", type text},
+				        {"tipo_documento", type text},
+				        {"numero_documento", type text},
+				        {"data_emissao", type text},
+				        {"fornecedor", type text},
+				        {"cnpj_fornecedor", type text},
+				        {"descricao_servico", type text},
+				        {"valor_bruto", type text},
+				        {"data_pagamento", type text},
+				        {"data_emissao_nf", type text},
+				        {"aprovado_por", type text},
+				        {"banco_destino", type text},
+				        {"status", type text},
+				        {"hash_verificacao", type text}
+				    }, "pt-BR"),
+				#"Added Valor Bruto Num" = Table.AddColumn(#"Changed Types", "valor_bruto_num", each fnMoedaBR([valor_bruto]), type number),
+				#"Added Processed At Datetime" = Table.AddColumn(#"Added Valor Bruto Num", "processed_at_datetime", each fnDateTimeIso([processed_at]), type datetime),
+				    #"Added Data Emissao NF Data" = Table.AddColumn(#"Added Processed At Datetime", "data_emissao_nf_data", each fnDataBR([data_emissao_nf]), type date)
+				in
+				    #"Added Data Emissao NF Data"
+

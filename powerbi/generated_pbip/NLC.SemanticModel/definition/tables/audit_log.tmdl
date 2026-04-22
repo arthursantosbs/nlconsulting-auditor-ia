@@ -1,0 +1,111 @@
+table audit_log
+	lineageTag: d5a2a8a6-7ed2-4de2-b7f8-537480e7b77f
+
+	column file_name
+		dataType: string
+		lineageTag: 86032ddb-5f94-4a74-acf2-3f89b632dddd
+		summarizeBy: none
+		sourceColumn: file_name
+
+	column timestamp
+		dataType: string
+		lineageTag: b5ffa0b2-f936-4dac-bd08-0a0a72316837
+		summarizeBy: none
+		sourceColumn: timestamp
+
+	column event_type
+		dataType: string
+		lineageTag: 83e004e5-93f6-43c3-adb9-648c7e09ec9c
+		summarizeBy: none
+		sourceColumn: event_type
+
+	column rule
+		dataType: string
+		lineageTag: 258484b6-9d93-4fe8-bbf2-53035a49589e
+		summarizeBy: none
+		sourceColumn: rule
+
+	column outcome
+		dataType: string
+		lineageTag: a986c0b1-9f2b-48a8-a0e8-bfcde90cbad3
+		summarizeBy: none
+		sourceColumn: outcome
+
+	column confidence
+		dataType: string
+		lineageTag: 08f0df17-e5fa-4243-b4f9-ab1c4774430c
+		summarizeBy: none
+		sourceColumn: confidence
+
+	column prompt_version
+		dataType: string
+		lineageTag: 1c9d67a8-6b6b-4bca-851e-bef4d1c7fead
+		summarizeBy: none
+		sourceColumn: prompt_version
+
+	column evidence_fields
+		dataType: string
+		lineageTag: 2b62b371-3ea4-4921-bec0-829f90c84c4c
+		summarizeBy: none
+		sourceColumn: evidence_fields
+
+	column details
+		dataType: string
+		lineageTag: 3b33e42d-3285-4b2a-a7ff-f3ff3e9c6c09
+		summarizeBy: none
+		sourceColumn: details
+
+	column timestamp_datetime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: ab52e65a-e3b0-49cd-a789-218e1a450ba8
+		summarizeBy: none
+		sourceColumn: timestamp_datetime
+
+		variation Variation
+			isDefault
+			relationship: dd6e8535-19d8-4e6f-ac29-b3e271052c7e
+			defaultHierarchy: LocalDateTable_080ef1a7-f3e1-4396-a39f-c2beae7d93d1.'Hierarquia de datas'
+
+	partition audit_log = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\\Users\\arthur\\Desktop\\NLConsulting\\manual_runs\\final_fasttrack_1000\\arquivos_nf_gemini_free\\results.xlsx"), null, true),
+				    Raw = Source{[Item="audit_log",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),
+				    fnDataBR = (txt as nullable text) as nullable date =>
+				        let
+				            normalized = if txt = null or Text.Trim(txt) = "" then null else Text.Trim(txt),
+				            parsed = try if normalized = null then null else Date.FromText(normalized, [Culture="pt-BR"]) otherwise null
+				        in
+				            parsed,
+				    fnDateTimeIso = (txt as nullable text) as nullable datetime =>
+				        let
+				            normalized = if txt = null or Text.Trim(txt) = "" then null else Text.Trim(txt),
+				            parsed = try if normalized = null then null else DateTime.From(DateTimeZone.FromText(normalized)) otherwise null
+				        in
+				            parsed,
+				    fnMoedaBR = (txt as nullable text) as nullable number =>
+				        let
+				            normalized = if txt = null or Text.Trim(txt) = "" then null else Text.Trim(Text.Replace(txt, "R$", "")),
+				            semMilhar = if normalized = null then null else Text.Replace(normalized, ".", ""),
+				            decimalPoint = if semMilhar = null then null else Text.Replace(semMilhar, ",", "."),
+				            parsed = try if decimalPoint = null then null else Number.FromText(decimalPoint, "en-US") otherwise null
+				        in
+				            parsed,
+				    #"Changed Types" = Table.TransformColumnTypes(#"Promoted Headers", {
+				        {"file_name", type text},
+				        {"timestamp", type text},
+				        {"event_type", type text},
+				        {"rule", type text},
+				        {"outcome", type text},
+				        {"confidence", type text},
+				        {"prompt_version", type text},
+				        {"evidence_fields", type text},
+				        {"details", type text}
+				    }, "pt-BR"),
+				    #"Added Timestamp Datetime" = Table.AddColumn(#"Changed Types", "timestamp_datetime", each fnDateTimeIso([timestamp]), type datetime)
+				in
+				    #"Added Timestamp Datetime"
+
