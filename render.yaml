@@ -1,17 +1,30 @@
 services:
   - type: web
     name: nlconsulting-document-auditor
-    env: python
+    runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    autoDeploy: true
+    autoDeployTrigger: commit
+    healthCheckPath: /api/health
     envVars:
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_MODEL
-        value: gpt-4.1-mini
+        value: llama-3.1-8b-instant
       - key: OPENAI_BASE_URL
-        value: https://api.openai.com/v1
+        value: https://api.groq.com/openai/v1
+      - key: AI_PROVIDER_LABEL
+        value: Groq Free Plan
       - key: AI_REQUIRED
         value: false
+      - key: MAX_UPLOAD_MB
+        value: 30
+      - key: MAX_FILES_PER_JOB
+        value: 1500
+      - key: LLM_TIMEOUT_SECONDS
+        value: 60
+      - key: LLM_MAX_RETRIES
+        value: 3
+      - key: LLM_CONCURRENCY
+        value: 1

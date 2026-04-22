@@ -1,5 +1,7 @@
 # NLConsulting · Auditor de Documentos com IA
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/arthursantosbs/nlconsulting-auditor-ia)
+
 Aplicacao web para processar lotes de documentos financeiros (`.zip` ou varios `.txt`), extrair campos com IA, detectar anomalias, exportar resultados para CSV/Excel e gerar trilha de auditoria separada para consumo no Power BI.
 
 ## O que esta entrega cobre
@@ -65,12 +67,13 @@ Os arquivos serao salvos em `manual_runs/<nome-do-lote>/`.
 
 ## Prompt utilizado
 
-Versao do prompt: `2026-04-16-v1`
+Versao do prompt: `2026-04-21-v2`
 
 Estratégia:
 
 - O parser deterministico tenta ler os campos por `CHAVE: VALOR`
-- Em seguida o LLM recebe nome do arquivo, texto bruto e campos preliminares
+- Quando o documento ja vem estruturado e consistente, o sistema usa o parser diretamente com `extraction_source=parser_structured`
+- Quando ha sinais de problema estrutural, o LLM entra como camada de recuperacao
 - O modelo responde JSON puro com `fields`, `warnings`, `confidence` e `processable`
 - Se um campo nao puder ser extraido com seguranca, a instrucao exige `nao extraido`
 
@@ -124,6 +127,7 @@ O projeto foi validado com provider OpenAI-compatible real durante o desenvolvim
 - `Groq Free Plan` com `openai/gpt-oss-20b`
 - smoke test com `25` arquivos: `25/25` documentos processados via LLM
 - teste de estabilidade com `100` arquivos: `100/100` documentos processados via LLM
+- lote final de `1000` arquivos fechado em modo hibrido rapido, priorizando parser estruturado e usando IA para recuperacao de casos problemáticos
 
 Os artefatos desses testes ficam em `manual_runs/groq_checks/` no ambiente local e nao sao versionados.
 
@@ -145,8 +149,18 @@ Assim que o lote oficial for processado, use o arquivo `anomaly_report.md` gerad
 1. Suba este projeto para um repositório GitHub publico.
 2. No Render, crie um novo `Web Service` apontando para o repositório.
 3. O arquivo [render.yaml](/C:/Users/arthur/Desktop/NLConsulting/render.yaml) ja define `buildCommand` e `startCommand`.
-4. Configure `OPENAI_API_KEY` nas environment variables do Render.
-5. Depois do deploy, a URL publica entregavel sera a URL gerada pelo Render.
+4. Configure `OPENAI_API_KEY` nas environment variables do Render com a sua chave da Groq.
+5. O arquivo [render.yaml](/C:/Users/arthur/Desktop/NLConsulting/render.yaml) ja aponta para `llama-3.1-8b-instant` em `https://api.groq.com/openai/v1`.
+6. Depois do deploy, a URL publica entregavel sera a URL gerada pelo Render.
+
+### Configuracao recomendada para o Render
+
+- `OPENAI_API_KEY`: sua chave Groq
+- `OPENAI_MODEL`: `llama-3.1-8b-instant`
+- `OPENAI_BASE_URL`: `https://api.groq.com/openai/v1`
+- `AI_PROVIDER_LABEL`: `Groq Free Plan`
+- `AI_REQUIRED`: `false`
+- `LLM_CONCURRENCY`: `1`
 
 Como alternativa, o projeto tambem inclui [Dockerfile](/C:/Users/arthur/Desktop/NLConsulting/Dockerfile).
 
