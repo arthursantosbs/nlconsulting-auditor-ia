@@ -6,6 +6,7 @@ venv/
 .env
 storage/jobs/
 manual_runs/
+sample_data/
 dist/
 build/
 *.log
@@ -15,3 +16,5 @@ build/
 powerbi/generated_pbip/**/.pbi/
 powerbi/generated_pbip/**/.platform
 powerbi/generated_pbip/**/cache.abf
+entrega_final/
+entrega_final_nlc.zip
